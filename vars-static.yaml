@@ -1,0 +1,42 @@
+---
+staticips: true
+named: true
+helper:
+  name: "helper"
+  ipaddr: "10.0.135.30"
+  networkifacename: "ens192"
+dns:
+  domain: "ipincloud.com"
+  clusterid: "ocptest"
+  forwarder1: "8.8.8.8"
+  forwarder2: "114.114.114.114"
+  registry:
+    name: "registry"
+    ipaddr: "10.0.135.30"
+  yum:
+    name: "yum"
+    ipaddr: "10.0.135.30"
+bootstrap:
+  name: "bootstrap"
+  ipaddr: "10.0.135.31"
+masters:
+  - name: "master1"
+    ipaddr: "10.0.135.32"
+  - name: "master2"
+    ipaddr: "10.0.135.33"
+  - name: "master3"
+    ipaddr: "10.0.135.34"
+workers:
+  - name: "worker1"
+    ipaddr: "10.0.135.35"
+  - name: "worker2"
+    ipaddr: "10.0.135.36"
+force_ocp_download: false
+
+ocp_bios: "file:///data/pkg/rhcos-4.3.0-x86_64-metal.raw.gz"
+ocp_initramfs: "file:///data/pkg/rhcos-4.3.0-x86_64-installer-initramfs.img"
+ocp_install_kernel: "file:///data/pkg/rhcos-4.3.0-x86_64-installer-kernel"
+ocp_client: "file:///data/pkg/openshift-client-linux-4.3.0.tar.gz"
+ocp_installer: "file:///data/pkg/openshift-install-linux-4.3.0.tar.gz"
+ocp_filetranspiler: "file:///data/pkg/filetranspiler-master.zip"
+registry_server: "registry.ipincloud.com:8443"

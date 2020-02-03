@@ -59,12 +59,17 @@ zone "." IN {
 ########### Add what's between these comments ###########
 zone "{{ dns.clusterid }}.{{ dns.domain }}" IN {
 	type	master;
-	file	"zonefile.db";
+	file	"zonefile.{{ dns.clusterid }}.{{ dns.domain }}.db";
 };
 
 zone "{{ helper.ipaddr.split('.')[2] }}.{{ helper.ipaddr.split('.')[1] }}.{{ helper.ipaddr.split('.')[0] }}.in-addr.arpa" IN {
 	type	master;
 	file	"reverse.db";
+};
+
+zone "{{ dns.domain }}" IN {
+	type	master;
+	file	"zonefile.db";
 };
 ########################################################
 

@@ -45,6 +45,7 @@
       dest: /etc/named.conf
     notify:
       - restart bind
+    when: named
 
   - name: Installing DNS Serialnumber generator
     copy:
@@ -60,19 +61,57 @@
     set_fact:
       serialnumber: "{{ dymanicserialnumber.stdout }}"
   
+  - name: Write out "{{ dns.clusterid }}.{{ dns.domain }}" zone file
+    template:
+      src: ../templates/zonefile.cluster.j2
+      dest: /var/named/zonefile.{{ dns.clusterid }}.{{ dns.domain }}.db
+    notify:
+      - restart bind
+    when: named
+    
+  - name: Set zone serial number
+    shell: "/usr/local/bin/set-dns-serial.sh"
+    register: dymanicserialnumber
+
+  - name: Setting serial number as a fact
+    set_fact:
+      serialnumber: "{{ dymanicserialnumber.stdout }}"
+  
   - name: Write out "{{ dns.domain }}" zone file
     template:
       src: ../templates/zonefile.j2
       dest: /var/named/zonefile.db
     notify:
       - restart bind
-  
+    when: named
+      
   - name: Write out reverse zone file
     template:
       src: ../templates/reverse.j2
       dest: /var/named/reverse.db
     notify:
       - restart bind
+    when: named
+
+  - name: Write out "dnsmasq.hosts" file
+    template:
+      src: ../templates/dnsmasq.hosts.j2
+      dest: /etc/dnsmasq.hosts
+
+  - name: Create /etc/dnsmasq.d/ if it does not exist
+    file:
+      path: /etc/dnsmasq.d/
+      state: directory
+
+  - name: Write out "dnsmasq.address.conf" file
+    template:
+      src: ../templates/dnsmasq.address.conf.j2
+      dest: /etc/dnsmasq.d/dnsmasq.address.conf
+
+  - name: Write out "dnsmasq-resolv.conf" file
+    template:
+      src: ../templates/dnsmasq-resolv.conf.j2
+      dest: /etc/dnsmasq-resolv.conf
   
   - name: Write out haproxy config file
     template:
@@ -265,15 +304,23 @@
     service:
       name: "{{ item }}"
       enabled: yes
-      state: started
+      state: restarted
     with_items:
-      - named
       - haproxy
       - httpd
       - rpcbind
       - nfs-server
       - nfs-lock
       - nfs-idmap
+
+  - name: Starting named services
+    service:
+      name: "{{ item }}"
+      enabled: yes
+      state: restarted
+    with_items:
+      - named
+    when: named
 
   - name: Starting DHCP/PXE services
     service:
@@ -373,13 +420,14 @@
       path: /usr/local/bin/README.md
       state: absent
 
-  - name: Downloading filetranspiler source
-    git:
-      repo: https://github.com/ashcrow/filetranspiler
-      dest: /usr/local/src/filetranspiler
+  # - name: Downloading filetranspiler source
+  #   unarchive:
+  #     src: '{{ ocp_filetranspiler}}'
+  #     dest: /usr/local/src/
+  #     remote_src: yes
 
-  - name: Building filetranspiler
-    shell: "podman build /usr/local/src/filetranspiler -t filetranspiler:latest"
+  # - name: Building filetranspiler
+  #   shell: "podman build /usr/local/src/filetranspiler-master -t filetranspiler:latest"
 
   - name: Installing filetranspiler
     copy:
